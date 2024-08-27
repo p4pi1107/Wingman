@@ -10,7 +10,7 @@ interface Test {
     testPath: string;
 }
 
-const TestItem = ({ test }) => {
+const TestItem = ({ test, isLoading }) => {
     const router = useRouter();
 
     const handleTestClick = () => {
@@ -25,6 +25,16 @@ const TestItem = ({ test }) => {
         >
           <h2 className="text-xl font-semibold">{test.testName}</h2>
           <p>{test.description}</p>
+        {isLoading ? (
+          <div className="text-blue-500 font-bold">
+            Loading new high score...
+          </div>
+        ) : (test.highScores && (
+            <div className="text-green-500 font-bold">
+              <p>Highscores:</p>
+              <p>{test.highScores.correct}/{test.highScores.total}</p>
+            </div>)
+          )}
         </div>
       );
 } 

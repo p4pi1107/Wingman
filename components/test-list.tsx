@@ -1,35 +1,62 @@
-// components/TestList.tsx
-import Link from 'next/link';
-import PropTypes from 'prop-types';
-import TestItem from "./test-item"
+"use client";
+import { useState, useEffect } from 'react';
+import TestItem from "./test-item";
+import { createClient } from '@/utils/supabase/client';
 
-interface Test {
-  id: string;
-  testName: string;
-  description: string;
-  tips: string[];
-}
+const TestList = () => {
+  const [testsWithScores, setTestsWithScores] = useState([]);
+  const [loadingScores, setLoadingScores] = useState(true);
 
-const TestList = ({ tests }) => {
+  useEffect(() => {
+    // Client-side fetching for up-to-date high scores
+    const fetchUpdatedScores = async () => {
+      const supabase = createClient();
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: updatedTests, error: updateError } = await supabase
+        .from('tests')
+        .select(`
+          *,
+          test_userResults (
+            highScores
+          )
+        `)
+        .eq('test_userResults.user_id', user.id);
+
+      if (updateError) {
+        console.error(updateError);
+        return;
+      }
+
+      const updatedTestsWithScores = updatedTests.map(test => ({
+        ...test,
+        highScores: test.test_userResults[0] ? test.test_userResults[0].highScores : null,
+        test_userResults: undefined
+      }));
+
+      setTestsWithScores(updatedTestsWithScores);
+      setLoadingScores(false);
+    };
+
+    fetchUpdatedScores();
+
+    // Simulate a 1.5-second loading delay before showing scores
+    const timer = setTimeout(() => {
+      setLoadingScores(false);
+    }, 1500);
+
+    return () => clearTimeout(timer); // Cleanup timer on component unmount
+  }, []);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-      {tests.map((test) => (
-        <TestItem key={test.id} test={test} />
+      {testsWithScores.map((test) => (
+        <TestItem key={test.id} test={test} isLoading={loadingScores} />
       ))}
-  </div>
-);
-};
-
-
-TestList.propTypes = {
-  tests: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      name: PropTypes.string.isRequired,
-      description: PropTypes.string.isRequired,
-      tips: PropTypes.string.isRequired
-    })
-  ).isRequired,
+    </div>
+  );
 };
 
 export default TestList;

@@ -2,21 +2,6 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import path from 'path';
-
-
-const testDetails = {
-  reactionTest: {
-    name: "Reaction Test",
-    description: "Test your reaction speed by identifying matching icons as quickly as possible.",
-    tips: [
-      "Stay focused and be ready to act fast.",
-      "Keep your finger close to the button.",
-      "Don't second guess, go with your first instinct."
-    ],
-  },
-  // You can add more tests here with similar structure
-};
 
 const TestDetail = () => {
 
@@ -47,7 +32,7 @@ const TestDetail = () => {
             <li key={index}>{tip}</li>
           ))}
         </ul>
-        <Link href={`/tests/${testInfo.path}`}>
+        <Link href={`/tests/${testInfo.path}?tId=${testInfo.tId}`}>
           <button className="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600">
             Play {testInfo.name}
           </button>
