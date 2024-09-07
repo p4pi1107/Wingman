@@ -1,26 +1,31 @@
 // components/reaction-test.js
+"use client"
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSquare, faCircle, faStar, faClover, faDiamond, faHeart, faBurst } from '@fortawesome/free-solid-svg-icons';
+import { saveTestResults } from '@/app/tests/actions';
 
 const getRandomInt = (max) => Math.floor(Math.random() * max);
 const getRandomBoolean = () => Math.random() < 0.5; // Returns true or false randomly
 
-const ReactionTest = () => {
+const ReactionTest = ({tId}) => {
+
+  const router = useRouter()
+
   const [leftObject, setLeftObject] = useState('');
   const [rightObject, setRightObject] = useState('');
   const [startTime, setStartTime] = useState(null);
   const [reactionTime, setReactionTime] = useState(null);
   const [score, setScore] = useState(0);
   const [wrong, setWrong] = useState(0);
-  const [timer, setTimer] = useState(60); // 30-second timer
+  const [timer, setTimer] = useState(10); // 30-second timer
   const [gameOver, setGameOver] = useState(false);
 
   // Add more object types
   const objects = [faSquare, faCircle, faStar, faClover, faDiamond, faHeart, faBurst];
 
   useEffect(() => {
-    const intervalId = setInterval(generateObjectRandomly, 1000); // Generate a new object every 1 second
     const timerId = setInterval(() => {
       setTimer(prevTimer => {
         if (prevTimer <= 1) {
@@ -32,12 +37,19 @@ const ReactionTest = () => {
         return prevTimer - 1;
       });
     }, 1000);
+    const intervalId = setInterval(generateObjectRandomly, 1000); // Generate a new object every 1 second
 
     return () => {
       clearInterval(intervalId);
       clearInterval(timerId);
     };
   }, []);
+
+  useEffect(() => {
+    if (gameOver) {
+      saveTestResults(router, 'Reaction Test', tId, score + wrong, score)
+    }
+  }, [gameOver])
 
   const generateObjectRandomly = () => {
 
@@ -98,9 +110,10 @@ const ReactionTest = () => {
           {gameOver ? "Game Over" : "EQUAL"}
         </button>
         {reactionTime && <p>Your reaction time: {reactionTime} ms</p>}
-        <p>Score: {score}</p>
-        <p>Mistakes: {wrong}</p>
-        {gameOver && <p>Time's up! Your final score is {score - wrong}.</p>}
+        <p>Guesses: {score + wrong}</p>
+        <p>Correct: {score}</p>
+        <p>Incorrect: {wrong}</p>
+        {gameOver && <p>Time's up! Your final score is {score - wrong < 0? 0 : score - wrong}.</p>}
       </div>
       <style jsx>{`
         .reaction-test {

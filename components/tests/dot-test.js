@@ -9,9 +9,10 @@ const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min)) + min
 const getRandomVelocity = () => getRandomNumber(0.7, 0.9) * (Math.random() > 0.5 ? 1 : -1);
 const getPosRandomVelocity = () => getRandomNumber(0.7, 0.9) ;
 
-const DotTest = (tId) => {
 
-  const router = useRouter();
+const DotTest = ({tId}) => {
+
+  const router = useRouter()
 
   const [dotCount, setDotCount] = useState(getRandomInt(8, 15)); // Random number of dots between 10 and 20
   const [selectedOption, setSelectedOption] = useState(null);
@@ -33,20 +34,26 @@ const DotTest = (tId) => {
 
   useEffect(() => {
     setIsMounted(true); // Mark the component as mounted
+    if (rounds > 0) {
+      setRounds((prev) => prev - 1)
+    } 
     generateOptions();
     initializeDots();
     startDotTimer();
-    if (rounds > 0) {
-      setRounds((prev) => prev - 1)
-    } else {
-      saveTestResults(tId, 5, score)
-      router.push(`/result?testName=${"Dot Test"}&totalQuestions=${5}&correctAnswers=${score}`);
-    }
     return () => {
       clearInterval(timerRef.current); // Clean up the interval on unmount
       cancelAnimationFrame(animationFrameRef.current);
     };
   }, [key]);
+
+  // use effect when game ends
+  useEffect(() => {
+    if (rounds === 0) {
+      clearInterval(timerRef.current); // Clean up the interval on unmount
+      cancelAnimationFrame(animationFrameRef.current);
+      saveTestResults(router, 'Dot Test', tId, 5, score)
+    }
+  }, [rounds])
 
   const generateOptions = () => {
     const correctOption = dotCount;

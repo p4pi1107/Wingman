@@ -4,18 +4,31 @@ import React from 'react';
 import { Separator } from '@/components/ui/separator';
 import ReactionTestResults from '@/components/result';
 import { useSearchParams } from 'next/navigation';
+import { createClient } from '@/utils/supabase/client';
 
 export default function TestResultPage() {
+
+  // Get test results from router
   const searchParams = useSearchParams();
   const totalQuestions = searchParams.get('totalQuestions');
   const correctAnswers = searchParams.get('correctAnswers');
   const testName= searchParams.get('testName');
+
+  const supabase = createClient();
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from('public_bucket').getPublicUrl('plane.png')
   const aiTips = ['Could try to spend less time on...', 'Be more careful of shapes']
+  
   return (
     <div className="w-full max-w-6xl flex items-center justify-center min-h-screen p-4">
       <div className="w-full max-w-4xl bg-white p-4 rounded-lg shadow-lg border border-gray-300">
           <h1 className="text-3xl font-bold mb-4 text-center">Your Results</h1>
-          <img src="/plane-icon.png" alt="plane icon" className="plane-icon mx-auto" /> {/* Adjust image path */}
+          {publicUrl ? (
+              <img src={publicUrl} alt="Header Image" className="plane-icon mx-auto" />
+            ) : (
+              <div>Loading...</div>
+            )}
           <div className="inner-container">
             <h3 className="result-heading text-center">{testName}</h3>
             <Separator />
@@ -92,7 +105,8 @@ export default function TestResultPage() {
         .stat-title {
           font-size: 18px; /* Increased font size */
           color: #777;
-          line-height: 1.2;
+          line-height: 1.5;
+          min-height: 40px;
         }
         .stat-value {
           font-size: 18px;
@@ -137,7 +151,7 @@ export default function TestResultPage() {
           line-height: 1.5;
         }
         .plane-icon {
-          width: 50px;
+          width: 100px;
           margin-bottom: 20px;
         }
       `}</style>
